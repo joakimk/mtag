@@ -95,10 +95,12 @@ describe MTag do
 	  # should this be configurable to be usable by anyone besides me?
 	end
 	
-	describe 'saving' do
-	  it 'should save' do
+	describe 'save' do
+	  it 'should update the id3 tags' do
 	    @mock_tag.expects(:update!)
 	    @mtag.save
 	  end
+	  
+	  it 'should rename the file' # $artist - $title.mp3
 	end
 end
