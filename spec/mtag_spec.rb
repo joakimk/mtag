@@ -23,26 +23,42 @@ module MTagSpecHelper
   def expect_call_to(method_name)
     @mock_tag.expects(method_name).returns(method_name.to_s)
   end
+  
+  def expect_change_of(field)
+    @mock_tag.expects("#{field}=".to_sym).with("new #{field}")
+  end  
 end
 
 describe MTag do
   include MTagSpecHelper
   
+  before :each do
+    @mock_tag = mock
+	  ID3Lib::Tag.stubs(:new).with('track.mp3').returns(@mock_tag)		 
+	  @mtag = MTag.new('track.mp3')
+	end
+  
 	describe 'new' do
-		before :each do
-      @mock_tag = mock
-		  ID3Lib::Tag.stubs(:new).with('track.mp3').returns(@mock_tag)		 
-		  @mtag = MTag.new('track.mp3')
-		end
+
 
 		it 'should load title' do
-		  expect_call_to(:title)
+		  expect_call_to :title
 			@mtag.title.should == 'title'
 		end
 
 		it 'should load artist' do
-		  expect_call_to(:artist)
+		  expect_call_to :artist
 			@mtag.artist.should == 'artist'
+		end
+
+		it 'should load album' do
+      expect_call_to :album
+      @mtag.album.should == 'album'
+		end
+
+		it 'should load genre' do
+      expect_call_to :genre
+      @mtag.genre.should == 'genre'
 		end
 
 		it 'should load url' do
@@ -50,19 +66,39 @@ describe MTag do
 			@mtag.url.should == 'address'
 		end
 
-		it 'should load album' do
-      expect_call_to(:album)
-      @mtag.album.should == 'album'
-		end
-
-		it 'should load genre' do
-      expect_call_to(:genre)
-      @mtag.genre.should == 'genre'
-		end
-
 		it 'should load track_number' do
 		  @mock_tag.expects(:frame).with(:TRCK).returns({ :text => '10' })
 			@mtag.track_number.should == 10
 		end
+	end
+	
+	describe 'changing values' do	  
+	  it 'should change the title' do		  
+		  expect_change_of :title
+	    @mtag.title = 'new title'
+	  end
+	  
+	  it 'should change the artist' do
+	    expect_change_of :artist
+	    @mtag.artist = 'new artist'
+	  end
+	  
+	  it 'should change the genre' do
+	    expect_change_of :genre
+	    @mtag.genre = 'new genre'
+	  end
+	  
+	  it 'should change the url'
+	  it 'should change the track_number'
+	  
+	  # Note... some of these should be duplicated in the id3. Question is
+	  # should this be configurable to be usable by anyone besides me?
+	end
+	
+	describe 'saving' do
+	  it 'should save' do
+	    @mock_tag.expects(:update!)
+	    @mtag.save
+	  end
 	end
 end

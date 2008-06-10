@@ -32,7 +32,11 @@ class MTag
     @tag.frame(:TRCK)[:text].to_i
   end
     
-  def method_missing(name)
-    @tag.send(name)
+  def method_missing(name, arguments = nil)    
+    @tag.send(name, arguments)
   end
+  
+  def save
+    @tag.update!
+  end  
 end
