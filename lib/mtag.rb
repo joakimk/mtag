@@ -24,7 +24,15 @@ class MTag
     @tag = ID3Lib::Tag.new(file_name)
   end
   
-  def title
-    @tag.title
+  def url
+    @tag.frame(:WXXX)[:url]
+  end
+  
+  def track_number
+    @tag.frame(:TRCK)[:text].to_i
+  end
+    
+  def method_missing(name)
+    @tag.send(name)
   end
 end

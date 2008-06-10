@@ -19,39 +19,50 @@
 require 'spec/spec_helper.rb'
 require 'lib/mtag.rb'
 
+module MTagSpecHelper
+  def expect_call_to(method_name)
+    @mock_tag.expects(method_name).returns(method_name.to_s)
+  end
+end
+
 describe MTag do
+  include MTagSpecHelper
+  
 	describe 'new' do
 		before :each do
-		 
+      @mock_tag = mock
+		  ID3Lib::Tag.stubs(:new).with('track.mp3').returns(@mock_tag)		 
+		  @mtag = MTag.new('track.mp3')
 		end
 
-		it 'should load track' do
-		  @mock_tag = mock
-		  ID3Lib::Tag.stubs(:new).with('track.mp3').returns(@mock_tag)
-			@mock_tag.expects(:title).returns('track#1')
-			
-			@mtag = MTag.new('track.mp3')
-			@mtag.title.should == 'track#1'
+		it 'should load title' do
+		  expect_call_to(:title)
+			@mtag.title.should == 'title'
 		end
 
-#		it 'should load artist' do
-#
-#		end
-#
-#		it 'should load url' do
-#			
-#		end
-#
-#		it 'should load album' do
-#
-#		end
-#
-#		it 'should load genre' do
-#
-#		end
-#
-#		it 'should load track_number' do
-#
-#		end
+		it 'should load artist' do
+		  expect_call_to(:artist)
+			@mtag.artist.should == 'artist'
+		end
+
+		it 'should load url' do
+		  @mock_tag.expects(:frame).with(:WXXX).returns({ :url => 'address' })
+			@mtag.url.should == 'address'
+		end
+
+		it 'should load album' do
+      expect_call_to(:album)
+      @mtag.album.should == 'album'
+		end
+
+		it 'should load genre' do
+      expect_call_to(:genre)
+      @mtag.genre.should == 'genre'
+		end
+
+		it 'should load track_number' do
+		  @mock_tag.expects(:frame).with(:TRCK).returns({ :text => '10' })
+			@mtag.track_number.should == 10
+		end
 	end
 end
