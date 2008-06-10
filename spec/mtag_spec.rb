@@ -39,8 +39,6 @@ describe MTag do
 	end
   
 	describe 'new' do
-
-
 		it 'should load title' do
 		  expect_call_to :title
 			@mtag.title.should == 'title'
