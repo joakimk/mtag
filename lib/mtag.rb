@@ -73,5 +73,8 @@ class MTag
   
   def save
     @tag.update!
+    
+    dirname = File.dirname(@file_path)
+    @file_path = "#{dirname}/#{artist} - #{title}.mp3"
   end  
 end

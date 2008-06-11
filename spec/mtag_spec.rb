@@ -176,13 +176,22 @@ describe MTag do
   end
   
   describe 'save' do
+    before :each do
+      @mock_tag.stubs(:update!)
+      @mtag.stubs(:title).returns('title')
+      @mtag.stubs(:artist).returns('artist')      
+    end
+    
     it 'should update the id3 tags' do
       @mock_tag.expects(:update!)
       @mtag.save
     end
     
-    it 'should rename the file' # $artist - $title.mp3
+    it 'should rename the file' 
     
-    it 'should save the new file name'        
+    it 'should save the new file name' do
+      @mtag.save
+      @mtag.file_path.should == 'path/to/artist - title.mp3'      
+    end
   end
 end
