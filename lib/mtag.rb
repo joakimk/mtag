@@ -24,6 +24,14 @@ class MTag
     @tag = ID3Lib::Tag.new(file_name)
   end
   
+  def artist=(new_artist)
+    @tag.artist = new_artist
+    @tag.composer = new_artist
+    @tag.frame(:TOPE)[:text] = new_artist # Orig. Artist
+    @tag.frame(:TCOP)[:text] = new_artist # Copyright
+    @tag.frame(:TENC)[:text] = new_artist # Encoder
+  end
+  
   def url
     @tag.frame(:WXXX)[:url]
   end

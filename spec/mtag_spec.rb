@@ -28,11 +28,27 @@ module MTagSpecHelper
     @mock_tag.expects("#{field}=".to_sym).with("new #{field}")
   end 
   
+  def stub_frame_to_do_nothing
+    @mock_tag.stubs(:frame).returns({})
+  end  
+
   def stub_frame_to_return_empty_hash_for(id)
     hash = {}
     @mock_tag.stubs(:frame).with(id).returns(hash)
     hash
   end   
+  
+  def stub_setters(methods)
+    methods.each do |method|
+      @mock_tag.stubs("#{method}=".to_sym)
+    end            
+  end  
+  
+  def setting_artist_should_update_text_for(id)
+    hash = stub_frame_to_return_empty_hash_for(id)
+    @mtag.artist = 'new artist'
+    hash[:text].should == 'new artist'
+  end  
 end
 
 describe MTag do
@@ -45,6 +61,8 @@ describe MTag do
   end
   
   describe 'new' do
+    it 'should set the current file name'
+    
     it 'should load title' do
       expect_call_to :title
       @mtag.title.should == 'title'
@@ -81,17 +99,34 @@ describe MTag do
       expect_change_of :title
       @mtag.title = 'new title'
     end
-    
+        
     describe 'setting the artist' do
+      before :each do
+        stub_frame_to_do_nothing
+        stub_setters [ :artist, :composer ]
+      end
+      
       it 'should update the artist field' do
         expect_change_of :artist
         @mtag.artist = 'new artist'
       end  
       
-      it 'should update the composer field' #COMP2
-      it 'should update the orig. artist field' #ORGA2
-      it 'should update the copyright field' #COPY2
-      it 'should update the encoded by field' #ENCODED2
+      it 'should update the composer field' do
+        @mock_tag.expects(:composer=).with('new artist')
+        @mtag.artist = 'new artist'
+      end
+            
+      it 'should update the orig. artist field' do
+        setting_artist_should_update_text_for(:TOPE)
+      end
+      
+      it 'should update the copyright field' do
+        setting_artist_should_update_text_for(:TCOP)
+      end
+      
+      it 'should update the encoded by field' do
+        setting_artist_should_update_text_for(:TENC)
+      end
     end
         
     it 'should change the genre' do
@@ -101,7 +136,7 @@ describe MTag do
     
     describe 'setting the url' do
       before :each do
-        @mock_tag.stubs(:frame).returns({})
+        stub_frame_to_do_nothing
         @mock_tag.stubs(:comment=)
       end
       
@@ -137,6 +172,6 @@ describe MTag do
     
     it 'should rename the file' # $artist - $title.mp3
     
-    it 'should save the new file name'
+    it 'should save the new file name'        
   end
 end
