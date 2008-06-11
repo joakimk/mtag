@@ -26,7 +26,13 @@ module MTagSpecHelper
   
   def expect_change_of(field)
     @mock_tag.expects("#{field}=".to_sym).with("new #{field}")
-  end  
+  end 
+  
+  def stub_frame_to_return_empty_hash_for(id)
+    hash = {}
+    @mock_tag.stubs(:frame).with(id).returns(hash)
+    hash
+  end   
 end
 
 describe MTag do
@@ -34,71 +40,103 @@ describe MTag do
   
   before :each do
     @mock_tag = mock
-	  ID3Lib::Tag.stubs(:new).with('track.mp3').returns(@mock_tag)		 
-	  @mtag = MTag.new('track.mp3')
-	end
+    ID3Lib::Tag.stubs(:new).with('track.mp3').returns(@mock_tag)		 
+    @mtag = MTag.new('track.mp3')
+  end
   
-	describe 'new' do
-		it 'should load title' do
-		  expect_call_to :title
-			@mtag.title.should == 'title'
-		end
+  describe 'new' do
+    it 'should load title' do
+      expect_call_to :title
+      @mtag.title.should == 'title'
+    end
 
-		it 'should load artist' do
-		  expect_call_to :artist
-			@mtag.artist.should == 'artist'
-		end
+    it 'should load artist' do
+      expect_call_to :artist
+      @mtag.artist.should == 'artist'
+    end
 
-		it 'should load album' do
+    it 'should load album' do
       expect_call_to :album
       @mtag.album.should == 'album'
-		end
+    end
 
-		it 'should load genre' do
+    it 'should load genre' do
       expect_call_to :genre
       @mtag.genre.should == 'genre'
-		end
+    end
 
-		it 'should load url' do
-		  @mock_tag.expects(:frame).with(:WXXX).returns({ :url => 'address' })
-			@mtag.url.should == 'address'
-		end
+    it 'should load url' do
+      @mock_tag.expects(:frame).with(:WXXX).returns({ :url => 'address' })
+      @mtag.url.should == 'address'
+    end
 
-		it 'should load track_number' do
-		  @mock_tag.expects(:frame).with(:TRCK).returns({ :text => '10' })
-			@mtag.track_number.should == 10
-		end
-	end
-	
-	describe 'changing values' do	  
-	  it 'should change the title' do		  
-		  expect_change_of :title
-	    @mtag.title = 'new title'
-	  end
-	  
-	  it 'should change the artist' do
-	    expect_change_of :artist
-	    @mtag.artist = 'new artist'
-	  end
-	  
-	  it 'should change the genre' do
-	    expect_change_of :genre
-	    @mtag.genre = 'new genre'
-	  end
-	  
-	  it 'should change the url'
-	  it 'should change the track_number'
-	  
-	  # Note... some of these should be duplicated in the id3. Question is
-	  # should this be configurable to be usable by anyone besides me?
-	end
-	
-	describe 'save' do
-	  it 'should update the id3 tags' do
-	    @mock_tag.expects(:update!)
-	    @mtag.save
-	  end
-	  
-	  it 'should rename the file' # $artist - $title.mp3
-	end
+    it 'should load track_number' do
+      @mock_tag.expects(:frame).with(:TRCK).returns({ :text => '10' })
+      @mtag.track_number.should == 10
+    end
+  end
+  
+  describe 'changing values' do	  
+    it 'should change the title' do		  
+      expect_change_of :title
+      @mtag.title = 'new title'
+    end
+    
+    describe 'setting the artist' do
+      it 'should update the artist field' do
+        expect_change_of :artist
+        @mtag.artist = 'new artist'
+      end  
+      
+      it 'should update the composer field' #COMP2
+      it 'should update the orig. artist field' #ORGA2
+      it 'should update the copyright field' #COPY2
+      it 'should update the encoded by field' #ENCODED2
+    end
+        
+    it 'should change the genre' do
+      expect_change_of :genre
+      @mtag.genre = 'new genre'
+    end
+    
+    describe 'setting the url' do
+      before :each do
+        @mock_tag.stubs(:frame).returns({})
+        @mock_tag.stubs(:comment=)
+      end
+      
+      it 'should update the url field' do
+        hash = stub_frame_to_return_empty_hash_for(:WXXX)  	    
+        @mtag.url = 'new-url'	    
+        hash[:url].should == 'new-url'
+      end
+      
+      it 'should set the comment field' do
+        @mock_tag.expects(:comment=).with('new-url')
+        @mtag.url = 'new-url'
+      end
+    end
+                
+    it 'should change the track_number' do
+      hash = stub_frame_to_return_empty_hash_for(:TRCK)
+      @mtag.track_number = 10
+      hash[:text].should == '10'
+    end
+    
+    it 'should set multiple fields for some stuff'
+    
+    # Note... some of these should be duplicated in the id3. Question is
+    # should this be configurable to be usable by anyone besides me?
+  end
+  
+  describe 'save' do
+    it 'should update the id3 tags' do
+      @mock_tag.expects(:update!)
+      @mtag.save
+    end
+    
+    it 'should rename the file' # $artist - $title.mp3
+    
+    it 'should save the new file name'
+  end
 end

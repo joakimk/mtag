@@ -28,8 +28,17 @@ class MTag
     @tag.frame(:WXXX)[:url]
   end
   
+  def url=(new_url)
+    @tag.frame(:WXXX)[:url] = new_url
+    @tag.comment = new_url
+  end
+  
   def track_number
     @tag.frame(:TRCK)[:text].to_i
+  end
+  
+  def track_number=(new_number)
+    @tag.frame(:TRCK)[:text] = new_number.to_s    
   end
     
   def method_missing(name, arguments = nil)    
