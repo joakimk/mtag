@@ -56,12 +56,14 @@ describe MTag do
   
   before :each do
     @mock_tag = mock
-    ID3Lib::Tag.stubs(:new).with('track.mp3').returns(@mock_tag)		 
-    @mtag = MTag.new('track.mp3')
+    ID3Lib::Tag.stubs(:new).with('path/to/track.mp3').returns(@mock_tag)		 
+    @mtag = MTag.new('path/to/track.mp3')
   end
   
   describe 'new' do
-    it 'should set the current file name'
+    it 'should set the current file path' do
+      @mtag.file_path.should == 'path/to/track.mp3'
+    end
     
     it 'should load title' do
       expect_call_to :title
@@ -128,12 +130,21 @@ describe MTag do
         setting_artist_should_update_text_for(:TENC)
       end
     end
-        
-    it 'should change the genre' do
-      expect_change_of :genre
-      @mtag.genre = 'new genre'
-    end
+          
+    it 'should set the genre with added index for id3-v1 tags' do
+      [ 'Trance', 'Dance', 'Metal', 'Pop' ].each do |genre|
+        index = ID3Lib::Info::Genres.index(genre)
+        @mock_tag.expects(:genre=).with("(#{index})#{genre}")
+        @mtag.genre = genre
+      end
+    end  
     
+    it 'should throw a useful error when a genre does not exist' do
+      lambda { @mtag.genre = 'Non-Existant-Genre'
+      }.should raise_error(ArgumentError,
+              'Genre "Non-Existant-Genre" does not exist for ID3 v1')
+    end
+ 
     describe 'setting the url' do
       before :each do
         stub_frame_to_do_nothing
@@ -149,7 +160,7 @@ describe MTag do
       it 'should set the comment field' do
         @mock_tag.expects(:comment=).with('new-url')
         @mtag.url = 'new-url'
-      end
+      end                  
     end
                 
     it 'should change the track_number' do
@@ -158,10 +169,10 @@ describe MTag do
       hash[:text].should == '10'
     end
     
-    it 'should set multiple fields for some stuff'
-    
-    # Note... some of these should be duplicated in the id3. Question is
-    # should this be configurable to be usable by anyone besides me?
+    it 'should set the year' do
+      @mock_tag.expects(:year=).with("2008")
+      @mtag.year = 2008
+    end
   end
   
   describe 'save' do

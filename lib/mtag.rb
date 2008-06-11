@@ -20,8 +20,11 @@ require 'rubygems'
 require 'id3lib'
 
 class MTag
-  def initialize(file_name)
-    @tag = ID3Lib::Tag.new(file_name)
+  attr_reader :file_path
+  
+  def initialize(file_path)
+    @tag = ID3Lib::Tag.new(file_path)
+    @file_path = file_path
   end
   
   def artist=(new_artist)
@@ -48,7 +51,22 @@ class MTag
   def track_number=(new_number)
     @tag.frame(:TRCK)[:text] = new_number.to_s    
   end
+  
+  def year=(new_year)
+    @tag.year = new_year.to_s
+  end
+  
+  def genre=(new_genre)
+    index = ID3Lib::Info::Genres.index(new_genre)
     
+    raise ArgumentError,
+      "Genre \"#{new_genre}\" does not exist for ID3 v1" unless index
+          
+    @tag.genre = "(#{index})#{new_genre}"
+  end
+      
+  # Any getters or setters that are the same for MTag and ID3Lib
+  # are simply forwarded
   def method_missing(name, arguments = nil)    
     @tag.send(name, arguments)
   end
