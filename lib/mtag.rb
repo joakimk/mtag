@@ -64,6 +64,11 @@ class MTag
           
     @tag.genre = "(#{index})#{new_genre}"
   end
+  
+  def genre
+    genre = @tag.genre
+    genre[genre.rindex(')')+1..-1]
+  end
         
   def save
     @tag.update!
@@ -85,6 +90,10 @@ class MTag
   # Any getters or setters that are the same for MTag and ID3Lib
   # are simply forwarded
   def method_missing(name, arguments = nil)    
-    @tag.send(name, arguments)
+    if arguments
+      @tag.send(name, arguments)
+    else
+      @tag.send(name)
+    end
   end    
 end

@@ -60,6 +60,12 @@ describe MTag do
     @mtag = MTag.new('path/to/track.mp3')
   end
   
+  it 'should be able to handle files where frames are missing. like using set_frame_text, but something that works for all cases'  
+  # it works as it is now if the mp3 has all frames in the tag already.
+  # but a newly encoded mp3 won't have them.
+  # one way to set url: set.frame_text(:WXXX, ''), then just set the url
+  # perhaps check if it exists and only if not set it to empty?
+  
   describe 'new' do
     it 'should set the current file path' do
       @mtag.file_path.should == 'path/to/track.mp3'
@@ -80,9 +86,9 @@ describe MTag do
       @mtag.album.should == 'album'
     end
 
-    it 'should load genre' do
-      expect_call_to :genre
-      @mtag.genre.should == 'genre'
+    it 'should load genre without id' do
+      @mock_tag.expects(:genre).returns('(31)Trance')
+      @mtag.genre.should == 'Trance'
     end
 
     it 'should load url' do
