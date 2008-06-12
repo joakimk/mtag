@@ -177,6 +177,8 @@ describe MTag do
   
   describe 'save' do
     before :each do
+      File.stubs(:rename)
+      ID3Lib::Tag.stubs(:new)
       @mock_tag.stubs(:update!)
       @mtag.stubs(:title).returns('title')
       @mtag.stubs(:artist).returns('artist')      
@@ -187,11 +189,25 @@ describe MTag do
       @mtag.save
     end
     
-    it 'should rename the file' 
-    
+    it 'should rename the file' do      
+      File.expects(:rename).with('path/to/track.mp3', 'path/to/artist - title.mp3')
+      @mtag.save
+    end
+        
     it 'should save the new file name' do
       @mtag.save
       @mtag.file_path.should == 'path/to/artist - title.mp3'      
     end
+    
+    # TODO: fix a way to test this.
+    # This will not work because there is no way to expect two
+    # calls to a method with different arguments using Mocha at this time (that I can find)
+    #it 'should reload the file when saved' do
+    #  new_mock = mock
+    #  ID3Lib::Tag.expects(:new).with('path/to/artist - title.mp3')
+    #                            .returns(new_mock)      
+    #  @mock_tag.expects(:title=).with('new title')
+    #  @mtag.title = 'new title'
+    #end    
   end
 end

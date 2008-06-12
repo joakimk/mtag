@@ -64,17 +64,27 @@ class MTag
           
     @tag.genre = "(#{index})#{new_genre}"
   end
-      
+        
+  def save
+    @tag.update!
+    
+    old_file_path = @file_path
+    update_file_path    
+    File.rename(old_file_path, @file_path)
+    
+    @tag = ID3Lib::Tag.new(@file_path) # NOTE: This behavior is not specced, see mtag specs.
+  end  
+  
+  private
+    
+  def update_file_path
+    dirname = File.dirname(@file_path)
+    @file_path = "#{dirname}/#{artist} - #{title}.mp3"    
+  end
+    
   # Any getters or setters that are the same for MTag and ID3Lib
   # are simply forwarded
   def method_missing(name, arguments = nil)    
     @tag.send(name, arguments)
-  end
-  
-  def save
-    @tag.update!
-    
-    dirname = File.dirname(@file_path)
-    @file_path = "#{dirname}/#{artist} - #{title}.mp3"
-  end  
+  end    
 end
